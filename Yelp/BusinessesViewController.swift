@@ -8,21 +8,27 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController {
+class BusinessesViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
 
     var businesses: [Business]!
+    var filteredData: [Business]!
+    @IBOutlet weak var tabelView: UITableView!
+    var searchBar: UISearchBar!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        Business.searchWithTerm("Thai", completion: { (businesses: [Business]!, error: NSError!) -> Void in
-            self.businesses = businesses
+        tabelView.dataSource = self
+        tabelView.delegate   = self
         
-            for business in businesses {
-                print(business.name!)
-                print(business.address!)
-            }
-        })
+        searchBar            = UISearchBar()
+        searchBar.delegate   = self
+        searchBar.sizeToFit()
+        navigationItem.titleView = searchBar
+        filteredData = businesses
+        tabelView.rowHeight  = UITableViewAutomaticDimension
+        tabelView.estimatedRowHeight    = 120
+        doSearch();
+        
 
 /* Example of Yelp search with more search options specified
         Business.searchWithTerm("Restaurants", sort: .Distance, categories: ["asianfusion", "burgers"], deals: true) { (businesses: [Business]!, error: NSError!) -> Void in
@@ -34,6 +40,21 @@ class BusinessesViewController: UIViewController {
             }
         }
 */
+    }
+    
+    private func doSearch(){
+        var searchTerm = searchBar.text
+        if(searchTerm == nil || searchTerm==""){
+            searchTerm = "Thai"
+        }
+        Business.searchWithTerm(searchTerm!, completion: { (businesses: [Business]!, error: NSError!) -> Void in
+            self.businesses = businesses
+            self.tabelView.reloadData()
+            for business in businesses {
+                print(business.name!)
+                print(business.address!)
+            }
+        })
     }
 
     override func didReceiveMemoryWarning() {
@@ -50,5 +71,36 @@ class BusinessesViewController: UIViewController {
         // Pass the selected object to the new view controller.
     }
     */
+    
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
+        if businesses != nil{
+            return businesses!.count
+        }
+        return 0
+    }
+    
+    
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell{
+        let cell = tableView.dequeueReusableCellWithIdentifier("BusinessCell", forIndexPath: indexPath) as! BusinessCell
+        cell.business = businesses[indexPath.row]
+        return cell
+    }
+    
+    func searchBarTextDidBeginEditing(searchBar: UISearchBar){
+        searchBar.showsCancelButton = true
+    }
+    
+    func searchBarCancelButtonClicked(searchBar: UISearchBar){
+        searchBar.showsCancelButton = false
+        searchBar.text              = ""
+        searchBar.resignFirstResponder()
+    }
+    
+    
+    func searchBarSearchButtonClicked(searchBar: UISearchBar){
+        searchBar.resignFirstResponder()
+        print(searchBar.text )
+        doSearch()
+    }
 
 }
