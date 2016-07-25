@@ -8,7 +8,7 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
+class BusinessesViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate,filtersViewControllerDelegate {
 
     var businesses: [Business]!
     var filteredData: [Business]!
@@ -19,7 +19,6 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
         super.viewDidLoad()
         tabelView.dataSource = self
         tabelView.delegate   = self
-        
         searchBar            = UISearchBar()
         searchBar.delegate   = self
         searchBar.sizeToFit()
@@ -48,6 +47,8 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
             searchTerm = "Thai"
         }
         Business.searchWithTerm(searchTerm!, completion: { (businesses: [Business]!, error: NSError!) -> Void in
+            print("\(searchTerm)")
+            print(NSError)
             self.businesses = businesses
             self.tabelView.reloadData()
             for business in businesses {
@@ -62,15 +63,16 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
         // Dispose of any resources that can be recreated.
     }
 
-    /*
+    
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?){
+        let navigationViewController = segue.destinationViewController as! UINavigationController
+        let filtersViewController    = navigationViewController.topViewController as! FiltersViewController
+        filtersViewController.delegate = self
     }
-    */
+    
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
         if businesses != nil{
@@ -101,6 +103,15 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
         searchBar.resignFirstResponder()
         print(searchBar.text )
         doSearch()
+    }
+    
+    func filtersViewController(filtersViewController: FiltersViewController, didUpdateFilters filters: [String : AnyObject]) {
+        var categories = filters["categories"] as! [String]?
+        Business.searchWithTerm("Restaurants", sort: nil, categories: categories, deals: nil) { (businesses :[Business]!, error : NSError!) -> Void in
+            self.businesses = businesses
+            self.tabelView.reloadData()
+    
+        }
     }
 
 }
