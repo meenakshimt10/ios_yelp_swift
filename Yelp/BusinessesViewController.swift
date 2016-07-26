@@ -106,8 +106,31 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
     }
     
     func filtersViewController(filtersViewController: FiltersViewController, didUpdateFilters filters: [String : AnyObject]) {
-        var categories = filters["categories"] as! [String]?
-        Business.searchWithTerm("Restaurants", sort: nil, categories: categories, deals: nil) { (businesses :[Business]!, error : NSError!) -> Void in
+        var sort : YelpSortMode!
+        var deal : Bool
+        if(filters["sort"]!.count > 0) {
+            switch(filters["sort"]![0] as! String!){
+            case "0":
+                sort = YelpSortMode.BestMatched
+            case "1":
+                sort = YelpSortMode.Distance
+            case "2":
+                sort = YelpSortMode.HighestRated
+            default :
+                sort = nil
+            }
+        }
+        if(filters["deals"]!.count > 0){
+            deal = true
+        }
+        else{
+            deal = false
+        }
+        
+        print("sort :\(filters["deal"])")
+        print("distance \(filters["distance"])")
+        let searchCategories = filters["categories"] as! [String]?
+        Business.searchWithTerm("Restaurants", sort: sort , categories: searchCategories, deals: deal) { (businesses :[Business]!, error : NSError!) -> Void in
             self.businesses = businesses
             self.tabelView.reloadData()
     
